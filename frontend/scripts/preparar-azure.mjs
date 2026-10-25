@@ -35,6 +35,50 @@ const pkg = {
 writeFileSync(join(distDir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');
 console.log('✔ dist/frontend/package.json creado (npm start → node server/server.mjs)');
 
+// 1b. Soporte para Azure App Service en WINDOWS (IIS + iisnode).
+//     iisnode carga un archivo CommonJS; server.js importa el servidor ESM de Angular.
+writeFileSync(
+  join(distDir, 'server.js'),
+  `// Punto de entrada para Azure App Service Windows (iisnode).\n` +
+    `// Carga el servidor SSR de Angular (ESM). PORT lo asigna IIS.\n` +
+    `import('./server/server.mjs').catch((err) => {\n` +
+    `  console.error('No se pudo iniciar server/server.mjs', err);\n` +
+    `  process.exit(1);\n` +
+    `});\n`,
+);
+writeFileSync(
+  join(distDir, 'web.config'),
+  `<?xml version="1.0" encoding="utf-8"?>
+<!-- Azure App Service Windows: IIS envía TODAS las peticiones a server.js (Node) -->
+<configuration>
+  <system.webServer>
+    <webSocket enabled="false" />
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode" />
+    </handlers>
+    <rewrite>
+      <rules>
+        <rule name="TodoANode" stopProcessing="true">
+          <match url=".*" />
+          <action type="Rewrite" url="server.js" />
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering>
+        <hiddenSegments>
+          <remove segment="bin" />
+        </hiddenSegments>
+      </requestFiltering>
+    </security>
+    <httpErrors existingResponse="PassThrough" />
+    <iisnode node_env="production" watchedFiles="web.config;server.js" loggingEnabled="true" devErrorsEnabled="false" />
+  </system.webServer>
+</configuration>
+`,
+);
+console.log('✔ server.js + web.config creados (Azure Windows / iisnode)');
+
 // 2. ZIP mínimo (deflate) con rutas tipo POSIX
 const crcTabla = new Uint32Array(256).map((_, n) => {
   let c = n;
