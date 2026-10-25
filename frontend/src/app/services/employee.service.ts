@@ -52,7 +52,7 @@ export class EmployeeService {
       const created = res.data;
       if (!created) return;
       const current = this.employeesSubject.getValue();
-      this.employeesSubject.next([...current, created]); // inmutable
+      this.employeesSubject.next([created, ...current]); // inmutable: el nuevo aparece primero
       this.resetDraft();
       this.notify('success', res.message);
     });

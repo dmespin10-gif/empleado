@@ -16,7 +16,7 @@ export class InMemoryEmployeeRepository implements IEmployeeRepository {
   private readonly store = new Map<string, Employee>();
 
   async findAll(options?: PaginationOptions): Promise<PaginatedResult<Employee>> {
-    const all = [...this.store.values()];
+    const all = [...this.store.values()].reverse(); // más recientes primero (igual que Mongo)
     const total = all.length;
     const page = options?.page ?? 1;
     const limit = options?.limit ?? Math.max(total, 1);

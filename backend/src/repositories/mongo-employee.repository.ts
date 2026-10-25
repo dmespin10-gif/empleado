@@ -31,7 +31,8 @@ const compact = (data: EmployeeUpdate): Partial<EmployeeInput> =>
 
 export class MongoEmployeeRepository implements IEmployeeRepository {
   async findAll(options?: PaginationOptions): Promise<PaginatedResult<Employee>> {
-    const query = EmployeeModel.find().sort({ createdAt: 1 });
+    // Más recientes primero: un empleado recién creado aparece arriba de la tabla.
+    const query = EmployeeModel.find().sort({ createdAt: -1, _id: -1 });
     if (options) {
       query.skip((options.page - 1) * options.limit).limit(options.limit);
     }

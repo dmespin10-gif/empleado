@@ -30,12 +30,12 @@ describe('EmployeeService (estado reactivo inmutable)', () => {
     expect(await firstValueFrom(service.employees$)).toEqual([ana]);
   });
 
-  it('create emite un arreglo NUEVO ([...current, nuevo])', async () => {
+  it('create emite un arreglo NUEVO con el nuevo primero ([nuevo, ...current])', async () => {
     const before = await firstValueFrom(service.employees$);
     service.create({ nombre: luis.nombre, cargo: luis.cargo, departamento: luis.departamento, sueldo: luis.sueldo });
     http.expectOne((r) => r.method === 'POST' && r.url === URL).flush(wrap(luis));
     const after = await firstValueFrom(service.employees$);
-    expect(after).toEqual([ana, luis]);
+    expect(after).toEqual([luis, ana]);
     expect(after).not.toBe(before);
     expect(before).toEqual([ana]); // el estado anterior no fue mutado
   });
