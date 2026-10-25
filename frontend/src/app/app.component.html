@@ -1,0 +1,12 @@
+@if (user$ | async; as user) {
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+      <span class="navbar-brand mb-0 h1">Gestión de Empleados</span>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-white small">{{ user.nombre }} ({{ user.email }})</span>
+        <button type="button" class="btn btn-sm btn-outline-light" (click)="logout()">Cerrar sesión</button>
+      </div>
+    </div>
+  </nav>
+}
+<router-outlet />

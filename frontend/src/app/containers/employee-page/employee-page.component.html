@@ -1,0 +1,44 @@
+@if (vm$ | async; as vm) {
+  <div class="container py-4">
+    <header class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h3 mb-0">Gestión de Empleados</h1>
+      @if (vm.loading) {
+        <span class="spinner-border spinner-border-sm text-primary" role="status" aria-label="Cargando"></span>
+      }
+    </header>
+
+    @if (vm.notification; as n) {
+      <div class="alert alert-{{ n.type }} alert-dismissible" role="alert">
+        <strong>{{ n.text }}</strong>
+        @if (n.details.length) {
+          <ul class="mb-0 mt-2">
+            @for (d of n.details; track d) {
+              <li>{{ d }}</li>
+            }
+          </ul>
+        }
+        <button type="button" class="btn-close" aria-label="Cerrar" (click)="onDismiss()"></button>
+      </div>
+    }
+
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <app-employee-form
+          [employee]="vm.draft"
+          [saving]="vm.loading"
+          (save)="onSave($event)"
+          (cancel)="onCancel()"
+        />
+      </div>
+      <div class="col-lg-8">
+        <app-employee-table
+          [employees]="vm.employees"
+          [selectedId]="vm.selectedId"
+          [disabled]="vm.loading"
+          (edit)="onEdit($event)"
+          (remove)="onDelete($event)"
+        />
+      </div>
+    </div>
+  </div>
+}

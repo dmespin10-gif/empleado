@@ -1,0 +1,133 @@
+### Variables
+@base = http://localhost:5000/api/v1
+@id = REEMPLAZAR_CON_UN_ID_REAL
+# Pegar aquí el token que devuelve el login (petición A2)
+@token = REEMPLAZAR_CON_EL_TOKEN
+
+########## LOGIN ##########
+
+### A1. Registro de usuario (201)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Deysi Espín",
+  "email": "deysi@empresa.com",
+  "password": "Secreta123"
+}
+
+### A2. Login (200) -> copiar data.token en @token
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresa.com",
+  "password": "Admin12345"
+}
+
+### A3. Login con contraseña incorrecta -> 401
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresa.com",
+  "password": "incorrecta"
+}
+
+### A4. Usuario actual (requiere token)
+GET {{base}}/auth/me
+Authorization: Bearer {{token}}
+
+### A5. Crear empleado SIN token -> 401
+POST {{base}}/employees
+Content-Type: application/json
+
+{
+  "nombre": "Sin Sesión",
+  "cargo": "Dev",
+  "departamento": "TI",
+  "sueldo": 1000
+}
+
+########## EMPLEADOS ##########
+
+### 1. Consulta completa (pública)
+GET {{base}}/employees
+
+### 2. Consulta paginada (pública)
+GET {{base}}/employees?page=1&limit=5
+
+### 3. Registro exitoso (201)
+POST {{base}}/employees
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Andrés Mendoza",
+  "cargo": "Arquitecto de Software",
+  "departamento": "Innovación",
+  "sueldo": 4500
+}
+
+### 4. Inyección inválida -> 400 con lista de campos (no llega al controlador)
+POST {{base}}/employees
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "An",
+  "cargo": "Developer",
+  "departamento": "TI",
+  "sueldo": -200
+}
+
+### 5. Campo no permitido (mass assignment) -> 400
+POST {{base}}/employees
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Usuario Malicioso",
+  "cargo": "Dev",
+  "departamento": "TI",
+  "sueldo": 1000,
+  "isAdmin": true
+}
+
+### 6. Consulta atómica por ID
+GET {{base}}/employees/{{id}}
+
+### 7. ID con formato inválido -> 400
+GET {{base}}/employees/123
+
+### 8. Actualización total (PUT exige todos los campos)
+PUT {{base}}/employees/{{id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Andrés Mendoza",
+  "cargo": "Director de Arquitectura",
+  "departamento": "Innovación",
+  "sueldo": 6000
+}
+
+### 9. Actualización parcial (PATCH)
+PATCH {{base}}/employees/{{id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sueldo": 6500
+}
+
+### 10. Eliminación
+DELETE {{base}}/employees/{{id}}
+Authorization: Bearer {{token}}
+
+### 11. JSON mal formado -> 400 controlado
+POST {{base}}/employees
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ nombre:

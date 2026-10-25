@@ -1,0 +1,41 @@
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h1 class="h4 mb-1">Iniciar sesión</h1>
+    <p class="text-muted mb-4">Gestión de Empleados</p>
+
+    @if (error) {
+      <div class="alert alert-danger py-2" role="alert">{{ error }}</div>
+    }
+
+    <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)" novalidate>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input id="email" name="email" type="email" class="form-control" autocomplete="username" required email
+               #email="ngModel" [(ngModel)]="model.email"
+               [class.is-invalid]="email.invalid && (email.touched || loginForm.submitted)" />
+        <div class="invalid-feedback">Ingresa un email válido.</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-group has-validation">
+          <input id="password" name="password" class="form-control" autocomplete="current-password" required
+                 [type]="showPassword ? 'text' : 'password'"
+                 #password="ngModel" [(ngModel)]="model.password"
+                 [class.is-invalid]="password.invalid && (password.touched || loginForm.submitted)" />
+          <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword">
+            {{ showPassword ? 'Ocultar' : 'Ver' }}
+          </button>
+          <div class="invalid-feedback">La contraseña es obligatoria.</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        }
+        Ingresar
+      </button>
+    </form>
+  </div>
+</div>

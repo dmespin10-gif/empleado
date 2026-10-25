@@ -1,0 +1,59 @@
+# stress-test.yml — FASE B: Pruebas de estrés concurrente (ISO/IEC 25010: Eficiencia de desempeño)
+# POST /employees ahora exige login: antes de la carga se inicia sesión UNA vez y el token
+# se envía en todas las peticiones (header Authorization: Bearer ...).
+config:
+  target: "http://localhost:3000"
+  plugins:
+    ensure: {} # Falla el proceso si no se cumplen los SLA
+  phases:
+    - duration: 20
+      arrivalRate: 5
+      name: "1. Fase de Calentamiento (Tráfico Base)"
+    - duration: 30
+      arrivalRate: 15
+      rampTo: 50
+      name: "2. Fase de Saturación Máxima (Pico de Carga)"
+  ensure:
+    thresholds:
+      - "http.response_time.p99": 200 # El 99 % de las transacciones < 200 ms (comportamiento temporal)
+    maxErrorRate: 1 # No más del 1 % de errores de socket HTTP
+
+# Se ejecuta una sola vez antes de las fases: obtiene el token del administrador (creado al iniciar el servidor).
+before:
+  flow:
+    - post:
+        url: "/api/v1/auth/login"
+        json:
+          email: "admin@empresa.com"
+          password: "Admin12345"
+        capture:
+          json: "$.data.token"
+          as: "token"
+
+scenarios:
+  - name: "Inundación transaccional perimetral (Payloads Mixtos Zod)"
+    flow:
+      # Flujo A: datos correctos -> recorre la tubería completa (Auth -> Zod -> controlador -> repositorio)
+      - post:
+          url: "/api/v1/employees"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            nombre: "Andrés Mendoza"
+            cargo: "Software Architect"
+            departamento: "I+D"
+            sueldo: 4200
+          capture:
+            json: "$.data.id" # La entidad de dominio expone 'id' (el mapper oculta '_id')
+            as: "employeeId"
+      - think: 1
+      # Flujo B: datos corruptos -> rechazo inmediato del DTO Zod (400)
+      - post:
+          url: "/api/v1/employees"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            nombre: "Al"
+            cargo: "Dev"
+            departamento: "TI"
+            sueldo: -500 # Campo ilegal
